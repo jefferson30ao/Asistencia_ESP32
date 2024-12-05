@@ -15,6 +15,11 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 public class MainActivity extends AppCompatActivity {
 
     private TextView txtEstado;
@@ -49,11 +54,47 @@ public class MainActivity extends AppCompatActivity {
 
         // Configurar botón para enviar código de estudiante
         btnEnviar.setOnClickListener(v -> {
-            String codigo = editCodigo.getText().toString();
+            /*String codigo = editCodigo.getText().toString();
             if (!codigo.isEmpty() && codigo.length() == 8 && codigo.matches("\\d+")) {
                 enviarCodigoESP32(macAddress, codigo);
             } else {
                 Toast.makeText(MainActivity.this, "Ingrese un código válido de 8 dígitos", Toast.LENGTH_SHORT).show();
+            }*/
+            try {
+                // Dirección IP del ESP32 (reemplázala con la IP de tu ESP32)
+                String esp32Ip = "192.168.4.1"; // La dirección IP del Access Point del ESP32
+                String urlString = "http://" + esp32Ip + "/DireccionMac"; // Ruta configurada en el ESP32
+
+                // Crear la URL
+                URL url = new URL(urlString);
+
+                // Abrir conexión HTTP
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET"); // Establecer el método GET
+
+                // Obtener el código de respuesta
+                int responseCode = connection.getResponseCode();
+                System.out.println("Response Code: " + responseCode);
+
+                // Si la respuesta es exitosa (código 200)
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    // Leer la respuesta del servidor
+                    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    String inputLine;
+                    StringBuffer response = new StringBuffer();
+
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    in.close();
+
+                    // Imprimir la respuesta del servidor
+                    System.out.println("Respuesta del servidor: " + response.toString());
+                } else {
+                    System.out.println("Error en la solicitud. Código de respuesta: " + responseCode);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
     }
